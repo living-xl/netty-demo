@@ -18,6 +18,7 @@ public class ByteBuffer2String {
         ByteBuffer wrap = ByteBuffer.wrap(str.getBytes());
         debugAll(wrap);
 
+
         System.out.println(StandardCharsets.UTF_8.decode(encode));
         System.out.println(StandardCharsets.UTF_8.decode(wrap));
         byteBuffer.flip();
