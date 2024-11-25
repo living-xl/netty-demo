@@ -11,12 +11,12 @@ public class Client {
             SocketChannel sc = SocketChannel.open();
             sc.connect(new InetSocketAddress("127.0.0.1",9999));
             System.out.println("waiting .....");
-            int num = 1;
-            while(true){
-                sc.write(Charset.defaultCharset().encode("hello"+num));
-                num++;
-                Thread.sleep(1000*10);
-            }
+//            int num = 1;
+//            while(true){
+//                sc.write(Charset.defaultCharset().encode("hello"+num));
+//                num++;
+//                Thread.sleep(1000*10);
+//            }
 
         } catch (Exception e) {
             e.printStackTrace();
