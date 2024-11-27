@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import static base.bytebuffer.ByteBufferUtil.debugRead;
@@ -26,11 +27,13 @@ public class Server1 {
             serverChannel.bind(new InetSocketAddress(9999));
 
             while(true){
+                //select 方法在事件未处理时 不会进入阻塞 要么处理 要么取消
                 selector.select();
                 Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
                 while(iterator.hasNext()){
                     SelectionKey selectionKey = iterator.next();
-                    if(selectionKey.interestOps()==SelectionKey.OP_ACCEPT){
+                    iterator.remove();
+                    if(selectionKey.isAcceptable()){
                         log.debug("select serverKey -{}",selectionKey);
                         ServerSocketChannel channel = (ServerSocketChannel)selectionKey.channel();
                         SocketChannel sc = channel.accept();
@@ -42,20 +45,27 @@ public class Server1 {
                             ccKey.interestOps(SelectionKey.OP_READ);
                         }
 
-                    }else if(selectionKey.interestOps() == SelectionKey.OP_READ){
+                    }else if(selectionKey.isReadable()){
                         log.debug("select serverKey read -{}",selectionKey);
                         SocketChannel cc = (SocketChannel)selectionKey.channel();
                         try {
                             int length = cc.read(buffer);//阻塞方法
-                            if(length!= 0 ){
+                            log.debug("length - {}",length);
+                            if(length > 0 ){
                                 buffer.flip();
                                 debugRead(buffer);
                                 buffer.clear();
                                 log.debug("after read,{}",cc);
+                                cc.write(StandardCharsets.UTF_8.encode("你好!"));
+                            }
+                            else if(length<=-1){
+                                log.debug("cc is close");
+                                selectionKey.cancel();
                             }
 
                         } catch (IOException e) {
                             e.printStackTrace();
+                            selectionKey.cancel();
                         }
                     }
                 }
