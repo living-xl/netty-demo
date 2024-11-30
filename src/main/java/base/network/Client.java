@@ -18,17 +18,17 @@ public class Client {
             System.out.println("waiting .....");
             int num = 1;
             while(true){
-                sc.write(Charset.defaultCharset().encode("hello"+num));
+                sc.write(Charset.defaultCharset().encode("1234567890abcdefggg1234567890abcdefggg"+num+"\n"));
                 num++;
 
-                int length = sc.read(buffer);//阻塞方法
-                if(length!= 0 ){
-                    buffer.flip();
-                    debugRead(buffer);
-                    String rev = StandardCharsets.UTF_8.decode(buffer).toString();
-                    System.out.println("rev ....."+rev);
-                    buffer.clear();
-                }
+//                int length = sc.read(buffer);//阻塞方法
+//                if(length!= 0 ){
+//                    buffer.flip();
+//                    debugRead(buffer);
+//                    String rev = StandardCharsets.UTF_8.decode(buffer).toString();
+//                    System.out.println("rev ....."+rev);
+//                    buffer.clear();
+//                }
                 Thread.sleep(1000*1);
                 if(num>=10){
                     break;
