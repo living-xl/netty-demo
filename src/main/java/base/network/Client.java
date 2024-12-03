@@ -18,7 +18,7 @@ public class Client {
             System.out.println("waiting .....");
             int num = 1;
             while(true){
-                sc.write(Charset.defaultCharset().encode("1234567890abcdefggg1234567890abcdefggg"+num+"\n"));
+                sc.write(Charset.defaultCharset().encode("1234567890"+num+"\n"));
                 num++;
 
 //                int length = sc.read(buffer);//阻塞方法
