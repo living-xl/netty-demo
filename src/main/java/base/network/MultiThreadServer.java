@@ -5,11 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static base.bytebuffer.ByteBufferUtil.debugAll;
 
@@ -27,7 +25,6 @@ public class MultiThreadServer {
             bossKey.interestOps(SelectionKey.OP_ACCEPT);
 
             Worker worker = new Worker("worker-0");
-            worker.register();
             while(true){
                 boss.select();
                 Iterator<SelectionKey> iterator = boss.selectedKeys().iterator();
@@ -41,7 +38,7 @@ public class MultiThreadServer {
                         log.debug("connected...{}",accept.getRemoteAddress());
 
                         log.debug("before register ...{}",accept.getRemoteAddress());
-                        SelectionKey workerKey = accept.register(worker.selector, SelectionKey.OP_READ, null);
+                        worker.register(accept);
                         log.debug("after register ...{}",accept.getRemoteAddress());
                     }
                 }
@@ -58,17 +55,27 @@ public class MultiThreadServer {
         private String name;
         private Selector selector;
         private volatile boolean start = false;
+        public ConcurrentLinkedQueue<Runnable> queue = new ConcurrentLinkedQueue<>();
 
         public Worker(String name) {
             this.name = name;
         }
-        public void register() throws IOException {
+        public void register(SocketChannel sc) throws IOException {
             if(!start){
                 thread = new Thread(this, name);
                 selector = Selector.open();
                 thread.start();
                 start = true;
             }
+            queue.add(()->{
+                try {
+                    sc.register(selector,SelectionKey.OP_READ,null);
+                } catch (ClosedChannelException e) {
+                    e.printStackTrace();
+                }
+            });
+            selector.wakeup();
+
         }
 
         @Override
@@ -76,6 +83,10 @@ public class MultiThreadServer {
             while(true){
                 try {
                     selector.select();
+                    Runnable task = queue.poll();
+                    if(task!= null){
+                        task.run();
+                    }
                     Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
                     while(iterator.hasNext()){
                         SelectionKey workerKey = iterator.next();
