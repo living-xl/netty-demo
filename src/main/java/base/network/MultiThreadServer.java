@@ -1,6 +1,7 @@
 package base.network;
 
 import lombok.extern.slf4j.Slf4j;
+import org.omg.SendingContext.RunTime;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -8,6 +9,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static base.bytebuffer.ByteBufferUtil.debugAll;
 
@@ -23,8 +25,13 @@ public class MultiThreadServer {
 
             SelectionKey bossKey = ssc.register(boss, 0, null);
             bossKey.interestOps(SelectionKey.OP_ACCEPT);
-
-            Worker worker = new Worker("worker-0");
+            int cpu = Runtime.getRuntime().availableProcessors();
+            log.debug("cpu - {}",cpu);
+            Worker[] workers = new Worker[2];
+            for (int i = 0; i < workers.length; i++) {
+                workers[i]  = new Worker("worker-" + i);
+            }
+            AtomicInteger index = new AtomicInteger(0);
             while(true){
                 boss.select();
                 Iterator<SelectionKey> iterator = boss.selectedKeys().iterator();
@@ -38,7 +45,7 @@ public class MultiThreadServer {
                         log.debug("connected...{}",accept.getRemoteAddress());
 
                         log.debug("before register ...{}",accept.getRemoteAddress());
-                        worker.register(accept);
+                        workers[index.addAndGet(1)%workers.length].register(accept);
                         log.debug("after register ...{}",accept.getRemoteAddress());
                     }
                 }
