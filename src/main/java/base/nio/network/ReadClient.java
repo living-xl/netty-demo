@@ -1,9 +1,8 @@
-package base.network;
+package base.nio.network;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.Charset;
 
 public class ReadClient {
     public static void main(String[] args) {

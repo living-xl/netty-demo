@@ -1,39 +1,29 @@
-package base.file;
+package base.nio.file;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class TestDelFilesWalkFileTree {
+public class TestFilesWalkFileTree {
     public static void main(String[] args) {
-        Path path = Paths.get("D:\\学习 - 副本");
+        Path path = Paths.get("D://学习");
         try {
             AtomicInteger dirCount = new AtomicInteger();
             AtomicInteger fileCount = new AtomicInteger();
             Files.walkFileTree(path,new SimpleFileVisitor<Path>(){
                 @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                    System.out.println("====>"+dir);
+                    dirCount.incrementAndGet();
                     return super.preVisitDirectory(dir, attrs);
                 }
 
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-
-
-                    Files.delete(file);
-                    System.out.println("del:"+file);
+                    System.out.println(file);
                     fileCount.incrementAndGet();
                     return super.visitFile(file, attrs);
-                }
-
-                @Override
-                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                    Files.delete(dir);
-                    System.out.println("del====>"+dir);
-                    dirCount.decrementAndGet();
-                    return super.postVisitDirectory(dir, exc);
                 }
             });
             System.out.println("dirCount-"+dirCount);

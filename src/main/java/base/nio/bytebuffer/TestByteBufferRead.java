@@ -1,8 +1,8 @@
-package base.bytebuffer;
+package base.nio.bytebuffer;
 
 import java.nio.ByteBuffer;
 
-import static base.bytebuffer.ByteBufferUtil.debugAll;
+import static base.nio.bytebuffer.ByteBufferUtil.debugAll;
 
 public class TestByteBufferRead {
     public static void main(String[] args) {

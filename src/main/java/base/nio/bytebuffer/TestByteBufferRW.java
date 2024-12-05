@@ -1,7 +1,7 @@
-package base.bytebuffer;
+package base.nio.bytebuffer;
 
 import java.nio.ByteBuffer;
-import static base.bytebuffer.ByteBufferUtil.*;
+import static base.nio.bytebuffer.ByteBufferUtil.*;
 
 public class TestByteBufferRW {
     public static void main(String[] args) {

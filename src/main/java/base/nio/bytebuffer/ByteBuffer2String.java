@@ -1,9 +1,9 @@
-package base.bytebuffer;
+package base.nio.bytebuffer;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
-import static base.bytebuffer.ByteBufferUtil.debugAll;
+import static base.nio.bytebuffer.ByteBufferUtil.debugAll;
 
 public class ByteBuffer2String {
     public static void main(String[] args) {

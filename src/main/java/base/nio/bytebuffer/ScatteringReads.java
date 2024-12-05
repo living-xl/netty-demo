@@ -1,12 +1,11 @@
-package base.bytebuffer;
+package base.nio.bytebuffer;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
-import static base.bytebuffer.ByteBufferUtil.debugAll;
+import static base.nio.bytebuffer.ByteBufferUtil.debugAll;
 
 public class ScatteringReads {
     public static void main(String[] args) {

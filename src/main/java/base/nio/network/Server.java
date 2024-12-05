@@ -1,13 +1,11 @@
-package base.network;
+package base.nio.network;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.nio.channels.*;
 import java.util.Iterator;
-import java.util.Set;
 
 @Slf4j
 public class Server {
