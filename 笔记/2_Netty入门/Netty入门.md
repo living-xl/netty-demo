@@ -155,3 +155,82 @@ new Bootstrap()
 * 8 处，消息会经过通道 handler 处理，这里是将 String => ByteBuf 发出
 * 数据经过网络传输，到达服务器端，服务器端 5 和 6 处的 handler 先后被触发，走完一个流程
 
+### 2.4 流程梳理
+
+![](img/0040.png)
+
+#### 💡 提示
+
+> 一开始需要树立正确的观念
+>
+> * 把 channel 理解为数据的通道
+> * 把 msg 理解为流动的数据，最开始输入是 ByteBuf，但经过 pipeline 的加工，会变成其它类型对象，最后输出又变成 ByteBuf
+> * 把 handler 理解为数据的处理工序
+>   * 工序有多道，合在一起就是 pipeline，pipeline 负责发布事件（读、读取完成...）传播给每个 handler， handler 对自己感兴趣的事件进行处理（重写了相应事件处理方法）
+>   * handler 分 Inbound 和 Outbound 两类
+> * 把 eventLoop 理解为处理数据的工人
+>   * 工人可以管理多个 channel 的 io 操作，并且一旦工人负责了某个 channel，就要负责到底（绑定）
+>   * 工人既可以执行 io 操作，也可以进行任务处理，每位工人有任务队列，队列里可以堆放多个 channel 的待处理任务，任务分为普通任务、定时任务
+>   * 工人按照 pipeline 顺序，依次按照 handler 的规划（代码）处理数据，可以为每道工序指定不同的工人
+
+## 3. 组件
+
+### 3.1 EventLoop
+
+事件循环对象
+
+EventLoop 本质是一个单线程执行器（同时维护了一个 Selector），里面有 run 方法处理 Channel 上源源不断的 io 事件。
+
+它的继承关系比较复杂
+
+* 一条线是继承自 j.u.c.ScheduledExecutorService 因此包含了线程池中所有的方法
+* 另一条线是继承自 netty 自己的 OrderedEventExecutor，
+  * 提供了 boolean inEventLoop(Thread thread) 方法判断一个线程是否属于此 EventLoop
+  * 提供了 parent 方法来看看自己属于哪个 EventLoopGroup
+
+事件循环组
+
+EventLoopGroup 是一组 EventLoop，Channel 一般会调用 EventLoopGroup 的 register 方法来绑定其中一个 EventLoop，后续这个 Channel 上的 io 事件都由此 EventLoop 来处理（保证了 io 事件处理时的线程安全）
+
+* 继承自 netty 自己的 EventExecutorGroup
+  * 实现了 Iterable 接口提供遍历 EventLoop 的能力
+  * 另有 next 方法获取集合中下一个 EventLoop
+
+以一个简单的实现为例：
+
+```java
+// 内部创建了两个 EventLoop, 每个 EventLoop 维护一个线程
+DefaultEventLoopGroup group = new DefaultEventLoopGroup(2);
+System.out.println(group.next());
+System.out.println(group.next());
+System.out.println(group.next());
+```
+
+输出
+
+```
+io.netty.channel.DefaultEventLoop@60f82f98
+io.netty.channel.DefaultEventLoop@35f983a6
+io.netty.channel.DefaultEventLoop@60f82f98
+```
+
+也可以使用 for 循环
+
+```java
+DefaultEventLoopGroup group = new DefaultEventLoopGroup(2);
+for (EventExecutor eventLoop : group) {
+    System.out.println(eventLoop);
+}
+```
+
+输出
+
+```
+io.netty.channel.DefaultEventLoop@60f82f98
+io.netty.channel.DefaultEventLoop@35f983a6
+```
+
+
+#### 💡 优雅关闭
+
+优雅关闭 `shutdownGracefully` 方法。该方法会首先切换 `EventLoopGroup` 到关闭状态从而拒绝新的任务的加入，然后在任务队列的任务都处理完成后，停止线程的运行。从而确保整体应用是在正常有序的状态下退出的
