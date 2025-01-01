@@ -7,13 +7,15 @@ import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class TestMessageCodec {
     public static void main(String[] args) throws Exception {
         EmbeddedChannel embeddedChannel = new EmbeddedChannel(
                 new LoggingHandler(),
-//                new LengthFieldBasedFrameDecoder(
-//                        1024,12,4,0,0),
+                new LengthFieldBasedFrameDecoder(
+                        1024,12,4,0,0),
                 new MessageCodec()
         );
         LoginRequestMessage loginRequestMessage = new LoginRequestMessage("living", "xl661628*", "胥亮");
@@ -21,12 +23,12 @@ public class TestMessageCodec {
         ByteBuf buffer = ByteBufAllocator.DEFAULT.buffer();
         new MessageCodec().encode(null,loginRequestMessage,buffer);
 
-        embeddedChannel.writeInbound(buffer);
-//        ByteBuf s1 = buffer.slice(0, 100);
-//        ByteBuf s2 = buffer.slice(100, buffer.readableBytes()-100);
-//        s1.retain();
-//        embeddedChannel.writeInbound(s1);
-//        embeddedChannel.writeInbound(s2);
+//        embeddedChannel.writeInbound(buffer);
+        ByteBuf s1 = buffer.slice(0, 100);
+        ByteBuf s2 = buffer.slice(100, buffer.readableBytes()-100);
+        s1.retain();
+        embeddedChannel.writeInbound(s1);
+        embeddedChannel.writeInbound(s2);
 
 //        embeddedChannel.writeAndFlush(loginRequestMessage);
     }
