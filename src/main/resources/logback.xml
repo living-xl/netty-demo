@@ -27,7 +27,7 @@
     <logger name="base" level="DEBUG" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
-    <logger name="advanced" level="DEBUG" additivity="false">
+    <logger name="advanced" level="INFO" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
 

@@ -1,5 +1,6 @@
 package advanced.chatdemo.client;
 
+import advanced.chatdemo.client.handler.GroupChatRequestMessageClientHandler;
 import advanced.chatdemo.protocol.MessageCodecSharable;
 import advanced.chatdemo.protocol.ProtocolLengthFieldFrameDecoder;
 import advanced.netty.protocol.message.*;
@@ -23,10 +24,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ChatClient {
     public static void main(String[] args) {
         MessageCodecSharable MSG_CODEC = new MessageCodecSharable();
-        LoggingHandler LOG_HANDLER = new LoggingHandler(LogLevel.DEBUG);
+        LoggingHandler LOG_HANDLER = new LoggingHandler(LogLevel.INFO);
         CountDownLatch WAIT_FOR_LOGIN = new CountDownLatch(1);
         AtomicBoolean LOGIN = new AtomicBoolean(false);
         NioEventLoopGroup group = new NioEventLoopGroup(1);
+        GroupChatRequestMessageClientHandler GROUP_CHAT_HANDLER = new GroupChatRequestMessageClientHandler();
         try {
             Bootstrap client = new Bootstrap();
             client.channel(NioSocketChannel.class);
@@ -40,6 +42,7 @@ public class ChatClient {
                     ch.pipeline().addLast(new ProtocolLengthFieldFrameDecoder());
                     ch.pipeline().addLast(LOG_HANDLER);
                     ch.pipeline().addLast(MSG_CODEC);
+                    ch.pipeline().addLast(GROUP_CHAT_HANDLER);
                     ch.pipeline().addLast("client handler", new ChannelInboundHandlerAdapter() {
                         @Override
                         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
