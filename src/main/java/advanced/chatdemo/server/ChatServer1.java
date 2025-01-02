@@ -2,9 +2,7 @@ package advanced.chatdemo.server;
 
 import advanced.chatdemo.protocol.MessageCodecSharable;
 import advanced.chatdemo.protocol.ProtocolLengthFieldFrameDecoder;
-import advanced.chatdemo.server.handler.ChatRequestMessageHandler;
-import advanced.chatdemo.server.handler.GroupCreateRequestMessageHandler;
-import advanced.chatdemo.server.handler.LoginRequestMessageHandler;
+import advanced.chatdemo.server.handler.*;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -25,6 +23,8 @@ public class ChatServer1 {
         LoginRequestMessageHandler LOGIN_HANDLER = new LoginRequestMessageHandler();
         ChatRequestMessageHandler SEND_HANDLER = new ChatRequestMessageHandler();
         GroupCreateRequestMessageHandler GROUP_CREATE_HANDLER = new GroupCreateRequestMessageHandler();
+        GroupChatRequestMessageHandler GROUP_CHAT_HANDLER = new GroupChatRequestMessageHandler();
+        QuitHandler QUIT_HANDLER = new QuitHandler();
         try {
             ServerBootstrap chatServer = new ServerBootstrap();
             chatServer.channel(NioServerSocketChannel.class);
@@ -38,6 +38,8 @@ public class ChatServer1 {
                     ch.pipeline().addLast(LOGIN_HANDLER);
                     ch.pipeline().addLast(SEND_HANDLER);
                     ch.pipeline().addLast(GROUP_CREATE_HANDLER);
+                    ch.pipeline().addLast(GROUP_CHAT_HANDLER);
+                    ch.pipeline().addLast(QUIT_HANDLER);
                 }
             });
             ChannelFuture channelFuture = chatServer.bind(9999).sync();
