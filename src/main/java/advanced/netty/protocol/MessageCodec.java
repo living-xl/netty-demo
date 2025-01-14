@@ -43,10 +43,13 @@ public class MessageCodec extends ByteToMessageCodec<Message> {
         //6 1字节-补位无意义，对其填充
         out.writeByte(0xff);
         //7 获取内容的字节数组
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(bos);
-        oos.writeObject(msg);
-        byte[] bytes = bos.toByteArray();
+//        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+//        ObjectOutputStream oos = new ObjectOutputStream(bos);
+//        oos.writeObject(msg);
+//        byte[] bytes = bos.toByteArray();
+
+        byte[] bytes = SerializerEnum.Algorithm.JAVA.serializable(msg);
+
         //8 长度
         out.writeInt(bytes.length);
         //9 写入内容
@@ -66,9 +69,11 @@ public class MessageCodec extends ByteToMessageCodec<Message> {
         log.debug("{},{},{},{},{},{},{}",magicNum,ver,serializerType,messageType,sequenceId,supByte,length);
         byte[] content = new byte[length];
         in.readBytes(content, 0, length);
-        ByteArrayInputStream bis = new ByteArrayInputStream(content);
-        ObjectInputStream ois = new ObjectInputStream(bis);
-        Message message = (Message) ois.readObject();
+//        ByteArrayInputStream bis = new ByteArrayInputStream(content);
+//        ObjectInputStream ois = new ObjectInputStream(bis);
+//        Message message = (Message) ois.readObject();
+
+        Message message = SerializerEnum.Algorithm.JAVA.deserializable(content, Message.class);
 //        log.debug("{},{},{},{},{},{},{}",magicNum,ver,serializerType,messageType,sequenceId,supByte,length);
         log.debug("{}",message);
         out.add(message);

@@ -4,13 +4,18 @@ import advanced.chatdemo.protocol.MessageCodecSharable;
 import advanced.chatdemo.protocol.ProtocolLengthFieldFrameDecoder;
 import advanced.chatdemo.server.handler.*;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -35,6 +40,17 @@ public class ChatServer1 {
                     ch.pipeline().addLast(LOG_HANDLER);
                     ch.pipeline().addLast(new ProtocolLengthFieldFrameDecoder());
                     ch.pipeline().addLast(MSG_CODEC);
+                    ch.pipeline().addLast(new IdleStateHandler(5,0,0));
+                    ch.pipeline().addLast(new ChannelDuplexHandler(){
+                        @Override
+                        public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+                            IdleStateEvent event = (IdleStateEvent) evt;
+                            if(event.state() == IdleState.READER_IDLE){
+                                log.info("超过5秒没有收到客户端心跳。channel-{}",ctx.channel());
+                                ctx.channel().close();
+                            }
+                        }
+                    });
                     ch.pipeline().addLast(LOGIN_HANDLER);
                     ch.pipeline().addLast(SEND_HANDLER);
                     ch.pipeline().addLast(GROUP_CREATE_HANDLER);
