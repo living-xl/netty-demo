@@ -1,6 +1,11 @@
 package advanced.netty.protocol;
 
+import com.alibaba.fastjson.JSONObject;
+import com.google.gson.Gson;
+
 import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 public interface SerializerEnum {
     <T> T deserializable(byte[] bytes, Class<T> clazz);
@@ -32,6 +37,34 @@ public interface SerializerEnum {
                 } catch (IOException e) {
                     throw new RuntimeException("序列化异常。", e);
                 }
+            }
+        },
+        FASTJSON{
+            @Override
+            public <T> T deserializable(byte[] bytes, Class<T> clazz) {
+                String jsonStr = new String(bytes, StandardCharsets.UTF_8);
+                T object = JSONObject.parseObject(jsonStr, clazz);
+                return object;
+            }
+
+            @Override
+            public <T> byte[] serializable(T object) {
+                byte[] bytes = JSONObject.toJSONString(object).getBytes(StandardCharsets.UTF_8);
+                return bytes;
+            }
+        },
+        GSON{
+            @Override
+            public <T> T deserializable(byte[] bytes, Class<T> clazz) {
+                T object = new Gson().fromJson(new String(bytes, StandardCharsets.UTF_8), clazz);
+                return object;
+            }
+
+            @Override
+            public <T> byte[] serializable(T object) {
+                String jsonStr = new Gson().toJson(object);
+                byte[] bytes = jsonStr.getBytes(StandardCharsets.UTF_8);
+                return bytes;
             }
         }
     }

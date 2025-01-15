@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ChatClient {
     public static void main(String[] args) {
         MessageCodecSharable MSG_CODEC = new MessageCodecSharable();
-        LoggingHandler LOG_HANDLER = new LoggingHandler(LogLevel.INFO);
+        LoggingHandler LOG_HANDLER = new LoggingHandler(LogLevel.DEBUG);
         CountDownLatch WAIT_FOR_LOGIN = new CountDownLatch(1);
         AtomicBoolean LOGIN = new AtomicBoolean(false);
         NioEventLoopGroup group = new NioEventLoopGroup(1);
