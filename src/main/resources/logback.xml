@@ -30,8 +30,11 @@
     <logger name="advanced" level="INFO" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
+    <logger name="optimize" level="DEBUG" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
 
-    <logger name="io.netty.handler.logging.LoggingHandler" level="INFO" additivity="false">
+    <logger name="io.netty.handler.logging.LoggingHandler" level="DEBUG" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
 
