@@ -1,9 +1,10 @@
 package advanced.netty.protocol;
 
 import com.alibaba.fastjson.JSONObject;
-import com.google.gson.Gson;
+import com.google.gson.*;
 
 import java.io.*;
+import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -56,16 +57,35 @@ public interface SerializerEnum {
         GSON{
             @Override
             public <T> T deserializable(byte[] bytes, Class<T> clazz) {
-                T object = new Gson().fromJson(new String(bytes, StandardCharsets.UTF_8), clazz);
+                Gson gson = new GsonBuilder().registerTypeAdapter(Class.class, new ClassCodec()).create();
+                T object = gson.fromJson(new String(bytes, StandardCharsets.UTF_8), clazz);
                 return object;
             }
 
             @Override
             public <T> byte[] serializable(T object) {
-                String jsonStr = new Gson().toJson(object);
-                byte[] bytes = jsonStr.getBytes(StandardCharsets.UTF_8);
+                Gson gson = new GsonBuilder().registerTypeAdapter(Class.class, new ClassCodec()).create();
+                byte[] bytes = gson.toJson(object).getBytes(StandardCharsets.UTF_8);
                 return bytes;
             }
+        }
+    }
+    class ClassCodec implements JsonSerializer<Class<?>>, JsonDeserializer<Class<?>>{
+
+        @Override
+        public Class<?> deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+            try {
+                String className = jsonElement.getAsString();
+                return Class.forName(className);
+            } catch (ClassNotFoundException e) {
+                throw new JsonParseException(e);
+            }
+
+        }
+
+        @Override
+        public JsonElement serialize(Class<?> aClass, Type type, JsonSerializationContext jsonSerializationContext) {
+            return new JsonPrimitive(aClass.getName());
         }
     }
 }
