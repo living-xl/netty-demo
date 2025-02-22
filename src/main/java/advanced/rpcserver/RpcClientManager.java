@@ -3,6 +3,7 @@ package advanced.rpcserver;
 import advanced.chatdemo.protocol.MessageCodecSharable;
 import advanced.chatdemo.protocol.ProtocolLengthFieldFrameDecoder;
 import advanced.netty.protocol.message.RpcRequestMessage;
+import advanced.rpcserver.handler.RpcRequestMessageHandler;
 import advanced.rpcserver.handler.RpcResponseMessageHandler;
 import advanced.rpcserver.service.HelloService;
 import io.netty.bootstrap.Bootstrap;
@@ -14,6 +15,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.util.concurrent.DefaultPromise;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Proxy;
@@ -24,24 +26,33 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RpcClientManager {
     private static Channel channel = null;
     private static final Object Lock = new Object();
-    private static final AtomicInteger sequenceid = new AtomicInteger();
+    private static final AtomicInteger sequenceid = new AtomicInteger(0);
     public static void main(String[] args) {
         HelloService helloService = getProxyService(HelloService.class);
-        helloService.hello("张三");
-        helloService.hello("李四");
+        System.out.println(helloService.hello("张三"));
+        System.out.println(helloService.hello("李四"));
     }
     public static <T> T getProxyService(Class<T> serviceClass){
         ClassLoader loader = serviceClass.getClassLoader();
         Class<?>[] interfaces = new Class[]{serviceClass};
+        int sequenceid = RpcClientManager.sequenceid.addAndGet(1);
         Object o = Proxy.newProxyInstance(loader, interfaces, (proxy, method, args) -> {
-            RpcRequestMessage rpcRequestMessage = new RpcRequestMessage(sequenceid.addAndGet(1),
+            RpcRequestMessage rpcRequestMessage = new RpcRequestMessage(sequenceid,
                     serviceClass.getName(),
                     method.getName(),
                     method.getReturnType(),
                     method.getParameterTypes(),
                     args);
             getChannel().writeAndFlush(rpcRequestMessage);
-            return null;
+
+            DefaultPromise<Object> promise = new DefaultPromise<>(getChannel().eventLoop());
+            RpcResponseMessageHandler.PROMISES.put(sequenceid,promise);
+            promise.await();
+            if(promise.isSuccess()){
+                return promise.getNow();
+            }else {
+                throw new RuntimeException(promise.cause());
+            }
         });
         return (T)o;
     }
